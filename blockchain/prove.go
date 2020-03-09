@@ -84,12 +84,4 @@ func toHex(num int64) []byte {
 	var buf = make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(num))
 	return buf
-
-	// buff := new(bytes.Buffer)
-	// err := binary.Write(buff, binary.BigEndian, num)
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// return buff.Bytes()
 }
