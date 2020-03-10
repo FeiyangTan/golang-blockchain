@@ -13,10 +13,10 @@ func Run() {
 	fmt.Println()
 	fmt.Println("欢迎使用Tan区块链")
 l1:
-	fmt.Printf("当前区块高度： %v\n",blockNum)
+	fmt.Printf("当前区块高度： %v\n", blockNum)
 	fmt.Println("菜单：")
 	fmt.Println("------------------------------")
-	fmt.Printf("-1:查看当前所有区块链\t-2:查看最新区块\t-3:添加新区块\t-4:推出程序\n")
+	fmt.Printf("-1:查看当前所有区块链\t-2:查看最新区块\t-3:添加新区块\t-4:退出程序\n")
 	fmt.Println("------------------------------")
 	fmt.Println("请输入对应数字进行操作：")
 
