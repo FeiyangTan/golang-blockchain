@@ -12,7 +12,7 @@ import (
 )
 
 //diffculty 设置区块难度
-const diffculty = 16
+const diffculty = 18
 
 //ProofOfWork 区块证明
 type ProofOfWork struct {
@@ -59,11 +59,12 @@ func (pow *ProofOfWork) run() (int, []byte) {
 
 	blockNum++
 	nonce := 0
-
+	fmt.Println("挖矿....")
 	for nonce < math.MaxInt64 {
 		data := pow.initData(nonce)
 		hash = sha256.Sum256(data)
 
+		fmt.Printf("\r%x", hash)
 		intHash.SetBytes(hash[:])
 
 		if intHash.Cmp(pow.Target) == -1 {
@@ -72,8 +73,8 @@ func (pow *ProofOfWork) run() (int, []byte) {
 			nonce++
 		}
 	}
-
 	fmt.Println()
+	fmt.Println("挖矿成功")
 
 	return nonce, hash[:]
 }

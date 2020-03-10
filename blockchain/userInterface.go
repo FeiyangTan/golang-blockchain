@@ -104,7 +104,7 @@ func add() {
 
 func addDate() string {
 	inputReader := bufio.NewReader(os.Stdin)
-	fmt.Println("输入新区块保存的信息：")
+	fmt.Println("输入新区块保存的信息：（支持中文）")
 
 	input, err := inputReader.ReadString('\n')
 	if err != nil {
