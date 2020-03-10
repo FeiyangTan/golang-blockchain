@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
+	"time"
 )
 
 //diffculty 设置区块难度
-const diffculty = 16
+const diffculty = 12
 
 //ProofOfWork 区块证明
 type ProofOfWork struct {
@@ -20,6 +22,7 @@ type ProofOfWork struct {
 
 //NewProof 新添加证明
 func NewProof(b *Block) *ProofOfWork {
+	//***********
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-diffculty))
 
@@ -30,12 +33,15 @@ func NewProof(b *Block) *ProofOfWork {
 
 //initData 数据初始化
 func (pow *ProofOfWork) initData(nonce int) []byte {
+
 	data := bytes.Join(
 		[][]byte{
 			pow.Block.PrevHash,
 			pow.Block.Data,
 			toHex(int64(nonce)),
+			toHex(pow.Block.Timestamp),
 			toHex(int64(diffculty)),
+			toHex(int64(blockNum)),
 		},
 		[]byte{},
 	)
@@ -44,16 +50,20 @@ func (pow *ProofOfWork) initData(nonce int) []byte {
 
 //run 工作证明，寻找nonce
 func (pow *ProofOfWork) run() (int, []byte) {
+	now := time.Now()
+	timestamp := now.UnixNano()
+	pow.Block.Timestamp = timestamp
+
 	var intHash big.Int
 	var hash [32]byte
 
+	blockNum++
 	nonce := 0
 
 	for nonce < math.MaxInt64 {
 		data := pow.initData(nonce)
 		hash = sha256.Sum256(data)
 
-		fmt.Printf("\r%x", hash)
 		intHash.SetBytes(hash[:])
 
 		if intHash.Cmp(pow.Target) == -1 {
@@ -62,21 +72,38 @@ func (pow *ProofOfWork) run() (int, []byte) {
 			nonce++
 		}
 	}
+
 	fmt.Println()
 
 	return nonce, hash[:]
 }
 
 //Validate 证明区块的合法性
-func (pow *ProofOfWork) Validate() bool {
+func Validate(high int) bool {
+	a := strconv.Itoa(high)
+	block := readDateDB(a)
+
 	var intHash big.Int
 
-	data := pow.initData(pow.Block.Nonce)
+	data := bytes.Join(
+		[][]byte{
+			block.PrevHash,
+			block.Data,
+			toHex(int64(block.Nonce)),
+			toHex(block.Timestamp),
+			toHex(int64(diffculty)),
+			toHex(int64(block.BlockHigh)),
+		},
+		[]byte{},
+	)
 
 	hash := sha256.Sum256(data)
 	intHash.SetBytes(hash[:])
 
-	return intHash.Cmp(pow.Target) == -1
+	z := new(big.Int)
+	z.SetBytes(block.Hash)
+
+	return intHash.Cmp(z) == 0
 }
 
 //int64 转换成Hex
