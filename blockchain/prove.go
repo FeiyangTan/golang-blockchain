@@ -12,7 +12,7 @@ import (
 )
 
 //diffculty 设置区块难度
-const diffculty = 12
+const diffculty = 16
 
 //ProofOfWork 区块证明
 type ProofOfWork struct {
