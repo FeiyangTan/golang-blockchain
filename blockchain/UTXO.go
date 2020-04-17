@@ -12,17 +12,14 @@ import (
 
 //UpdateUTXO 更新UTXO
 func UpdateUTXO(utxo map[string]map[OutputIndex]int, tra []Transaction, blockHigh int) map[string]map[OutputIndex]int {
-	PrintUTXO(utxo)
-	fmt.Printf("test2~~~~~boclkHigh:%v\n",blockHigh)
+	// PrintUTXO(utxo)
 	for i, v := range tra {
 		//根据输入，删除UTXO
 		for _, u := range v.Vin {
-			
 			if _, ifIndexExist := utxo[u.Address]; ifIndexExist {
-				fmt.Printf("test1~~~~~~:%s\n",u.Address)
 				us := utxo[u.Address]
-				fmt.Println(u.outputIndex)
-				delete(us, u.outputIndex)
+				// fmt.Printf("delete:%v\n",u.OutputIndex)
+				delete(us, u.OutputIndex)
 			} else {
 				panic("错误:UTXO错误")
 			}
@@ -30,7 +27,7 @@ func UpdateUTXO(utxo map[string]map[OutputIndex]int, tra []Transaction, blockHig
 		//根据输出，添加UTXO
 		for j, w := range v.Vout {
 			outputIndex := OutputIndex{blockHigh, i + 1, j + 1}
-
+			// fmt.Printf("add:%v\n",outputIndex)
 			index := w.Address
 			if _, ifIndexExist := utxo[index]; ifIndexExist {
 				insideMap := utxo[index]
@@ -41,10 +38,8 @@ func UpdateUTXO(utxo map[string]map[OutputIndex]int, tra []Transaction, blockHig
 				insideMap[outputIndex] = w.Value
 				utxo[index] = insideMap
 			}
-
 		}
 	}
-
 	return utxo
 }
 
@@ -62,7 +57,7 @@ func PrintUTXO(utxo map[string]map[OutputIndex]int) {
 	for k, v := range utxo {
 		fmt.Printf("UTXO[%s]\n", k)
 		for l, u := range v {
-			fmt.Printf("\tb:%d,t:%d,o:%d\n", l.blockNum, l.tranNUm, l.outputNum)
+			fmt.Printf("\tb:%d,t:%d,o:%d\n", l.BlockNum, l.TranNum, l.OutputNum)
 			fmt.Printf("amout: %d\n", u)
 		}
 	}

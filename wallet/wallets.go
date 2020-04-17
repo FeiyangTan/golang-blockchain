@@ -17,8 +17,9 @@ type Wallets struct {
 	Wallets map[string]*Wallet
 }
 
-// CreateWallet 生成钱包组
-func (ws *Wallets) CreateWallet() string {
+// AddWallet 添加新钱包，返回钱包地址
+func (ws *Wallets) AddWallet() string {
+	// 生成新钱包
 	wallet := newWallet()
 	// 私钥推算地址
 	address := fmt.Sprintf("%s", wallet.getAddress())
@@ -28,38 +29,29 @@ func (ws *Wallets) CreateWallet() string {
 	return address
 }
 
-// NewWallets 生成钱包组
-func NewWallets() (*Wallets, error) {
-	wallets := Wallets{}
-	wallets.Wallets = make(map[string]*Wallet)
+// LoadWallets 加载钱包组
+func LoadWallets() (*Wallets, error) {
+	ws := Wallets{}
+	ws.Wallets = make(map[string]*Wallet)
 
-	err := wallets.loadFromFile()
-
-	return &wallets, err
-}
-
-// LoadFromFile 从文件加载钱包
-func (ws *Wallets) loadFromFile() error {
+	// 查看文件是否存在
 	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
-		return err
+		return &ws, err
 	}
-
+	// 读取文件
 	fileContent, err := ioutil.ReadFile(walletFile)
 	if err != nil {
 		log.Panic(err)
 	}
-
-	var wallets Wallets
+	// 解码文件
 	gob.Register(elliptic.P256())
 	decoder := gob.NewDecoder(bytes.NewReader(fileContent))
-	err = decoder.Decode(&wallets)
+	err = decoder.Decode(&ws)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	ws.Wallets = wallets.Wallets
-
-	return nil
+	return &ws, nil
 }
 
 // GetAddresses 查找钱包组中的地址
@@ -73,22 +65,11 @@ func (ws *Wallets) GetAddresses() []string {
 	return addresses
 }
 
-// GetWallet 通过地址找钱包
-func (ws Wallets) GetWallet(address string) Wallet {
-	return *ws.Wallets[address]
-}
-
-// GetWalletPublicKey 通过钱包找公钥
-func (w Wallet) GetWalletPublicKey() []byte {
-	return w.PublicKey
-}
-
 // SaveToFile 保存文件
 func (ws Wallets) SaveToFile() {
 	var content bytes.Buffer
 
 	gob.Register(elliptic.P256())
-
 	encoder := gob.NewEncoder(&content)
 	err := encoder.Encode(ws)
 	if err != nil {
@@ -99,4 +80,15 @@ func (ws Wallets) SaveToFile() {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+// ValidateAddress 检查该地址是否有效
+func (ws *Wallets) ValidateAddress(address string) bool {
+	adds := ws.GetAddresses()
+	for _, v := range adds {
+		if v == address {
+			return true
+		}
+	}
+	return false
 }

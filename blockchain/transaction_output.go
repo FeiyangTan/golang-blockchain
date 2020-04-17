@@ -8,13 +8,13 @@ type TXOutput struct {
 
 // OutputIndex 输出交易指引
 type OutputIndex struct {
-	blockNum  int
-	tranNUm   int
-	outputNum int
+	BlockNum  int
+	TranNum   int
+	OutputNum int
 }
 
 // NewTXOutput create a new TXOutput
-func NewTXOutput(value int, address string) TXOutput {
+func newTXOutput(value int, address string) TXOutput {
 	txo := TXOutput{value, address}
 	return txo
 }

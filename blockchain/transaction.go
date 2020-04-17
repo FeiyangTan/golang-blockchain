@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"fmt"
 	"log"
 )
 
@@ -20,8 +21,7 @@ type Transaction struct {
 // NewCoinbaseTX 对交易添加挖矿奖励（）
 func NewCoinbaseTX(address string) Transaction {
 	var tra Transaction
-	// fmt.Printf("test2~~~~~~%s\n", address)
-	txout := NewTXOutput(miningReward, address)
+	txout := newTXOutput(miningReward, address)
 	tra.Vout = append(tra.Vout, txout)
 	tra.ID = tra.hash()
 	return tra
@@ -40,7 +40,7 @@ func (tx *Transaction) hash() []byte {
 }
 
 // Serialize 用gob序列化交易
-func (tx Transaction) serialize() []byte {
+func (tx *Transaction) serialize() []byte {
 	var encoded bytes.Buffer
 
 	enc := gob.NewEncoder(&encoded)
@@ -57,27 +57,28 @@ func NewTransaction(senderAddress, receiverAddress string, amount int, utxo map[
 	var tra Transaction
 
 	// 生成输入
-	a := 0
-for1:
+	inputAmount := 0
+	if _, ok := utxo[senderAddress]; !ok {
+		fmt.Println("输入地址没有余额")
+		return nil
+	}
 	for k, v := range utxo[senderAddress] {
-		for a >= amount {
-			break for1
-		}
-		a += v
-		// fmt.Printf("test1~~~~~~%s\n", senderAddress)
+		inputAmount += v
 		txin := NewTXInput(k, v, senderAddress)
 		tra.Vin = append(tra.Vin, txin)
+		if inputAmount >= amount {
+			break
+		}
 	}
 	// 生成输出
-	txout := NewTXOutput(amount, receiverAddress)
+	txout := newTXOutput(amount, receiverAddress)
 	tra.Vout = append(tra.Vout, txout)
 	// 生成找零
-	a -= amount
-	if a > 0 {
-		txout := NewTXOutput(a, senderAddress)
+	inputAmount -= amount
+	if inputAmount > 0 {
+		txout := newTXOutput(inputAmount, senderAddress)
 		tra.Vout = append(tra.Vout, txout)
 	}
-
 	tra.ID = tra.hash()
 	return &tra
 }

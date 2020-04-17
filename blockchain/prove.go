@@ -22,7 +22,7 @@ type ProofOfWork struct {
 func newProof(b *Block) *ProofOfWork {
 	//***********
 	target := big.NewInt(1)
-	target.Lsh(target, uint(256-diffculty))
+	target.Lsh(target, uint(256-b.Diffculty))
 
 	pow := &ProofOfWork{b, target}
 
@@ -68,7 +68,7 @@ func (pow *ProofOfWork) initData(nonce int) []byte {
 			tra,
 			toHex(int64(nonce)),
 			toHex(pow.Block.Timestamp),
-			toHex(int64(diffculty)),
+			toHex(int64(pow.Block.Diffculty)),
 			[]byte(pow.Block.MinerAddress),
 			toHex(int64(pow.Block.BlockHigh)),
 		},
@@ -104,7 +104,7 @@ func (pow *ProofOfWork) initData(nonce int) []byte {
 //
 //	return intHash.Cmp(z) == 0
 //}
-//
+
 //int64 转换成Hex
 func toHex(num int64) []byte {
 	var buf = make([]byte, 8)

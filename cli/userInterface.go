@@ -6,193 +6,183 @@ import (
 	"os"
 
 	"github.com/FeiyangTan/golang-blockchain/blockchain"
+	"github.com/FeiyangTan/golang-blockchain/wallet"
 )
-
-//currentTransactions 当前收集到的交易
-var currentTransactions []blockchain.Transaction
-
-//currentBC 当前区块链
-var currentBC blockchain.BlockChain
-
-//currentHigh 当前区块高度
-var currentBlockHigh int
-
-//currentUTXO 当前UTXO
-var currentUTXO = make(map[string]map[blockchain.OutputIndex]int)
-
-var currentStep int
 
 //Run 开始程序
 func Run() {
 	fmt.Println()
-	fmt.Println("欢迎使用Tan区块链")
+	fmt.Println("**********************")
+	fmt.Println("*欢迎使用谭飞阳区块链*")
+	fmt.Println("**********************")
+
 	//更新当前信息
+	currentwallets, _ = wallet.LoadWallets()
 	blockchain.CreateDB()
 	currentBlockHigh = blockchain.UpdateHigh()
 	currentBC = blockchain.UpdateChain(currentBlockHigh)
-	checkAllBlock()
-
-	for i,v := range currentBC.Blocks{
-		currentUTXO = blockchain.UpdateUTXO(currentUTXO, v.Transactions, i+1)
+	// checkAllBlock()
+	for i, v := range currentBC.Blocks {
+		currentUTXO = blockchain.UpdateUTXO(currentUTXO, v.Transactions, i)
 	}
-
 	checkAllWallet()
+	//开始
 	for {
-		if currentStep == 0 && currentBlockHigh==0{
+		if len(currentwallets.Wallets) == 0 {
 			interfacc1()
-		} else if currentStep == 1 && currentBlockHigh==0{
+		} else if currentBlockHigh == 0 {
 			interfacc2()
-		} else {
+		} else if len(currentwallets.Wallets) == 1 {
 			interfacc3()
+		} else {
+			interfacc4()
 		}
 	}
 }
 
 func interfacc1() {
-	inputReader := bufio.NewReader(os.Stdin)
-l1:
 	fmt.Printf("当前区块高度： %v\n", currentBlockHigh)
-	//fmt.Println("菜单：")
 	fmt.Println("------------------------------")
 	fmt.Printf("-1:创建新钱包\t-2:退出程序\n")
 	fmt.Println("------------------------------")
-	fmt.Println("请输入对应数字进行操作：")
 
-	input, err := inputReader.ReadString('\n')
+	input, err := getinput("请输入对应数字进行操作：")
 	if err != nil {
-		fmt.Println("There were errors reading, exiting program.")
 		return
 	}
 
 	switch input {
-
-	case "1\n":
+	case "1":
 		fmt.Println("-1:创建新钱包")
 		addWallet()
 		fmt.Println()
-		currentStep++
-	case "2\n":
+	case "2":
 		fmt.Println("-6:推出程序")
 		os.Exit(0)
 	default:
 		fmt.Println("无效输入")
 		fmt.Println()
-		goto l1
 	}
 }
 
 func interfacc2() {
-	inputReader := bufio.NewReader(os.Stdin)
-l1:
 	fmt.Printf("当前区块高度： %v\n", currentBlockHigh)
-	//fmt.Println("菜单：")
 	fmt.Println("------------------------------")
 	fmt.Printf("-1:生成创世区块\t-2:创建新钱包\t-3:查看所有钱包与余额\t-4:退出程序\n")
 	fmt.Println("------------------------------")
-	fmt.Println("请输入对应数字进行操作：")
 
-	input, err := inputReader.ReadString('\n')
+	input, err := getinput("请输入对应数字进行操作：")
 	if err != nil {
-		fmt.Println("There were errors reading, exiting program.")
 		return
 	}
 
 	switch input {
-
-	case "1\n":
+	case "1":
 		fmt.Println("-1:生成创世区块")
 		addBlock()
 		fmt.Println()
-		currentStep++
-	case "2\n":
+	case "2":
 		fmt.Println("-2:创建新钱包")
 		addWallet()
 		fmt.Println()
-		goto l1
-	case "3\n":
+	case "3":
 		fmt.Println("-3:查看所有钱包与余额")
 		checkAllWallet()
 		fmt.Println()
-		goto l1
-	case "4\n":
+	case "4":
 		fmt.Println("-4:推出程序")
 		os.Exit(0)
 	default:
 		fmt.Println("无效输入")
 		fmt.Println()
-		goto l1
 	}
 }
 
 func interfacc3() {
-	inputReader := bufio.NewReader(os.Stdin)
-l1:
 	fmt.Printf("当前区块高度： %v\n", currentBlockHigh)
-	//fmt.Println("菜单：")
 	fmt.Println("------------------------------")
-	fmt.Printf("-1:添加新交易\t-2:挖矿（更新区块）\t-3:创建新钱包\t-4:查看当前所有区块链\t-5:查看所有钱包与余额\t-6:退出程序\n")
+	fmt.Printf("-1:创建第二个钱包\t-2:查看当前所有区块链\t-3:查看所有钱包与余额\t-4:退出程序\n")
 	fmt.Println("------------------------------")
-	fmt.Println("请输入对应数字进行操作：")
 
-	input, err := inputReader.ReadString('\n')
+	input, err := getinput("请输入对应数字进行操作：")
 	if err != nil {
-		fmt.Println("There were errors reading, exiting program.")
 		return
 	}
 
 	switch input {
-
-	case "1\n":
-		fmt.Println("-1:添加新交易")
-		fmt.Println()
-		addTranstion()
-		goto l1
-	case "2\n":
-		fmt.Println("-2:挖矿")
-		addBlock()
-		fmt.Println()
-		goto l1
-	case "3\n":
-		fmt.Println("-3:创建新钱包")
+	case "1":
+		fmt.Println("-3:创建第二个钱包")
 		addWallet()
 		fmt.Println()
-		goto l1
-	case "4\n":
+	case "2":
 		fmt.Println("-4:查看当前所有区块链")
 		fmt.Println()
 		checkAllBlock()
-		goto l1
-	case "5\n":
+	case "3":
 		fmt.Println("-5:查看所有钱包与余额")
 		checkAllWallet()
 		fmt.Println()
-		goto l1
-	case "6\n":
+	case "4":
 		fmt.Println("-6:推出程序")
 		os.Exit(0)
 	default:
 		fmt.Println("无效输入")
 		fmt.Println()
-		goto l1
 	}
 }
 
-//func checkNewestBlock() {
-//	if blockNum == 0 {
-//		fmt.Println("当前没有任何区块")
-//		fmt.Println()
-//		return
-//	}
-//
-//	block := currentBC.Blocks[len(currentBC.Blocks)-1]
-//	fmt.Printf("Previous Hash: %x\n", block.PrevHash)
-//	fmt.Printf("Data in Block: %s\n", block.Transactions)
-//	fmt.Printf("Timestamp:     %v\n", block.Timestamp)
-//	fmt.Printf("nonce:         %v\n", block.Nonce)
-//	fmt.Printf("Hash:          %x\n", block.Hash)
-//	fmt.Printf("BlockHigh:     %x\n", block.BlockHigh)
-//
-//	b := Validate(len(currentBC.Blocks))
-//	fmt.Printf("合法性:        %s\n", strconv.FormatBool(b))
-//	fmt.Println()
-//}
+func interfacc4() {
+	fmt.Printf("当前区块高度： %v\n", currentBlockHigh)
+	fmt.Println("------------------------------")
+	fmt.Printf("-1:添加新交易\t-2:挖矿（更新区块）\t-3:创建新钱包\t-4:查看当前所有区块链\t-5:查看所有钱包与余额\t-6:退出程序\n")
+	fmt.Println("------------------------------")
+
+	input, err := getinput("请输入对应数字进行操作：")
+	if err != nil {
+		return
+	}
+
+	switch input {
+	case "1":
+		fmt.Println("-1:添加新交易")
+		addTranstion()
+		fmt.Println()
+	case "2":
+		fmt.Println("-2:挖矿")
+		addBlock()
+		fmt.Println()
+	case "3":
+		fmt.Println("-3:创建新钱包")
+		addWallet()
+		fmt.Println()
+	case "4":
+		fmt.Println("-4:查看当前所有区块链")
+		fmt.Println()
+		checkAllBlock()
+	case "5":
+		fmt.Println("-5:查看所有钱包与余额")
+		checkAllWallet()
+		fmt.Println()
+	case "6":
+		fmt.Println("-6:推出程序")
+		os.Exit(0)
+	default:
+		fmt.Println("无效输入")
+		fmt.Println()
+	}
+}
+
+//getinput 打印输入提示，读取用户输入，返回用户输入
+func getinput(infor string) (string, error) {
+	inputReader := bufio.NewReader(os.Stdin)
+	fmt.Println(infor)
+	inputString, err := inputReader.ReadString('\n')
+	if err != nil {
+		fmt.Println("读取失误")
+		return "", err
+	}
+	a := []byte(inputString)
+	a = a[:len(a)-1]
+	inputString = string(a)
+	return inputString, err
+}

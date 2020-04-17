@@ -11,7 +11,7 @@ import (
 
 // TXInput 交易输入
 type TXInput struct {
-	outputIndex OutputIndex
+	OutputIndex OutputIndex
 	Value       int
 	// Signature   []byte
 	// PubKey []byte

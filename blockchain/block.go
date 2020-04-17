@@ -26,7 +26,7 @@ type Block struct {
 
 //AddBlock 添加一个区块
 func (chain *BlockChain) AddBlock(currentHigh int, currentTransactions []Transaction, minerAddress string) {
-	//生成创世区块
+	//生成新区块
 	var newBlock *Block
 	currentHigh++
 	if currentHigh == 1 {
@@ -35,21 +35,14 @@ func (chain *BlockChain) AddBlock(currentHigh int, currentTransactions []Transac
 		prevBlock := chain.Blocks[len(chain.Blocks)-1]
 		newBlock = createBlock(currentHigh, currentTransactions, prevBlock.Hash, minerAddress)
 	}
-
-	fmt.Printf("BlockHigh:     %x\n", newBlock.BlockHigh)
-	fmt.Printf("Previous Hash: %x\n", newBlock.PrevHash)
-	fmt.Printf("Timestamp:     %v\n", newBlock.Timestamp)
-	fmt.Printf("nonce:         %v\n", newBlock.Nonce)
-	fmt.Printf("Hash:          %x\n", newBlock.Hash)
-	fmt.Printf("MinerAddress:  %s\n", newBlock.MinerAddress)
-	fmt.Println()
-	PrintTransactions(newBlock.Transactions)
-	fmt.Println()
-
-	writrDateDB(currentHigh, newBlock)
-	writeHigh(currentHigh)
 	chain.Blocks = append(chain.Blocks, newBlock)
 
+	//打印新区块
+	newBlock.PrintBlock()
+
+	//更新数据库
+	WritrDateDB(currentHigh, newBlock)
+	writeHigh(currentHigh)
 }
 
 //createBlock 制造一个区块
@@ -67,21 +60,34 @@ func createBlock(currentHigh int, currentTransactions []Transaction, prevHash []
 	return newBlock
 }
 
+//PrintBlock 打印区块信息
+func (b *Block) PrintBlock() {
+	fmt.Printf("BlockHigh:     %x\n", b.BlockHigh)
+	fmt.Printf("Previous Hash: %x\n", b.PrevHash)
+	fmt.Printf("Timestamp:     %v\n", b.Timestamp)
+	fmt.Printf("Nonce:         %v\n", b.Nonce)
+	fmt.Printf("Hash:          %x\n", b.Hash)
+	fmt.Printf("MinerAddress:  %s\n", b.MinerAddress)
+	fmt.Printf("Diffculty:     %v\n", b.Diffculty)
+	printTransactions(b.Transactions)
+	fmt.Println()
+}
+
 //PrintTransactions 打印交易
-func PrintTransactions(tra []Transaction) {
+func printTransactions(tra []Transaction) {
 	for i, v := range tra {
 		fmt.Printf("交易#%d:\n", i+1)
-		fmt.Printf("\t交易ID:  %x\n", v.ID)
+		fmt.Printf("  交易ID:  %x\n", v.ID)
 		for j, u := range v.Vin {
-			fmt.Printf("\t输入#%d:\n", j+1)
-			fmt.Printf("\t\t输入来源:    区块#%d,交易#%d,输出#%d\n", u.outputIndex.blockNum, u.outputIndex.tranNUm, u.outputIndex.outputNum)
-			fmt.Printf("\t\t输入金额:    %d\n", u.Value)
-			fmt.Printf("\t\t输入者地址:  %s\n", u.Address)
+			fmt.Printf("  输入#%d:\n", j+1)
+			fmt.Printf("    输入来源:    区块#%d,交易#%d,输出#%d\n", u.OutputIndex.BlockNum, u.OutputIndex.TranNum, u.OutputIndex.OutputNum)
+			fmt.Printf("    输入金额:    %d\n", u.Value)
+			fmt.Printf("    输入者地址:   %s\n", u.Address)
 		}
 		for k, w := range v.Vout {
-			fmt.Printf("\t输出#%d:\n", k+1)
-			fmt.Printf("\t\t输出金额:    %d\n", w.Value)
-			fmt.Printf("\t\t输出者地址:  %s\n", w.Address)
+			fmt.Printf("  输出#%d:\n", k+1)
+			fmt.Printf("    输出金额:     %d\n", w.Value)
+			fmt.Printf("    输出者地址:   %s\n", w.Address)
 		}
 	}
 	fmt.Println()
